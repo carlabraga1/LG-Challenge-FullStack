@@ -1,0 +1,48 @@
+# Compose spec — supported by Docker Compose v2 (bundled with Docker Desktop
+# 4.x on Windows). Run with `docker compose up --build`.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: lg-api
+    ports:
+      - "3000:3000"
+    environment:
+      # DATABASE_URL points inside the named volume so the SQLite file
+      # survives container recreation.
+      DATABASE_URL: "file:/data/db/dev.db"
+      DATASET_DIR: "/data/ml-latest-small"
+      NODE_ENV: production
+      PORT: "3000"
+      HOST: "0.0.0.0"
+      # TMDB enrichment — optional. Set either variable in a top-level `.env`
+      # file (or the shell that runs `docker compose`) and Compose will pass
+      # it through. Leaving both empty keeps the app working without posters.
+      TMDB_API_KEY: "${TMDB_API_KEY:-}"
+      TMDB_BEARER_TOKEN: "${TMDB_BEARER_TOKEN:-}"
+    volumes:
+      - api-data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      # First-boot ETL takes a few seconds on a small dataset. Generous start
+      # period keeps the web container from marking api unhealthy prematurely.
+      start_period: 30s
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    container_name: lg-web
+    ports:
+      - "8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  api-data:
