@@ -1,0 +1,140 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+/* Dark mode is driven by a `.dark` class on <html>, set by useTheme. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-primary-glow: var(--primary-glow);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* Palette ported from auditrax.com.br: a cool neutral base on hue 220 with a
+   deep crimson primary. Values are the site's own HSL triplets, kept in HSL
+   rather than converted to hex so the relationship between the steps (only
+   lightness moves) stays readable. */
+:root {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(220 15% 10%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(220 15% 10%);
+  --primary: hsl(345 100% 32%);
+  --primary-foreground: hsl(0 0% 100%);
+  --primary-glow: hsl(345 100% 50%);
+  --secondary: hsl(220 10% 95%);
+  --secondary-foreground: hsl(220 15% 10%);
+  --muted: hsl(220 10% 96%);
+  --muted-foreground: hsl(220 8% 40%);
+  --accent: hsl(345 100% 32%);
+  --accent-foreground: hsl(0 0% 100%);
+  --border: hsl(220 10% 88%);
+  --ring: hsl(345 100% 32%);
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: hsl(220 15% 8%);
+  --foreground: hsl(0 0% 95%);
+  --card: hsl(220 15% 12%);
+  --card-foreground: hsl(0 0% 95%);
+  --primary: hsl(345 100% 32%);
+  --primary-foreground: hsl(0 0% 100%);
+  --primary-glow: hsl(345 100% 50%);
+  --secondary: hsl(220 10% 20%);
+  --secondary-foreground: hsl(0 0% 95%);
+  --muted: hsl(220 10% 18%);
+  --muted-foreground: hsl(220 8% 60%);
+  --accent: hsl(345 100% 32%);
+  --accent-foreground: hsl(0 0% 100%);
+  --border: hsl(220 10% 22%);
+  /* Deliberate deviation: the source uses --primary here, but crimson at 32%
+     lightness against an 8% background is a barely visible focus ring. The
+     brighter glow tone keeps focus obvious without leaving the palette. */
+  --ring: hsl(345 100% 50%);
+}
+
+* {
+  border-color: var(--border);
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* `type="search"` gets us the right mobile keyboard and semantics, but WebKit
+   also draws its own clear button — which sat next to ours, showing two X's.
+   Ours stays: it is themed, keyboard-reachable and labelled. */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 25%,
+    var(--secondary) 50%,
+    var(--muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Respect users who ask the OS to reduce motion — the shimmer and the card
+   lift are decorative, so drop them rather than fight the preference. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .skeleton { animation: none; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
