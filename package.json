@@ -1,0 +1,12 @@
+{
+  "name": "lg-challenge-fullstack",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MovieLens challenge: Fastify API + React client",
+  "scripts": {
+    "dataset:download": "node scripts/download-dataset.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
