@@ -1,0 +1,88 @@
+// Schema for MovieLens ml-latest-small.
+//
+// Design notes:
+// - The challenge only exposes aggregates over ratings (top-K, popularity),
+//   never individual ratings. Storing 100k+ raw rating rows would just bloat
+//   the DB for no read path, so the ETL aggregates at load time into
+//   MovieStats.
+// - `year` is stored as a separate integer column because "year+genre" is a
+//   first-class query. Parsing it out of the raw title on every request would
+//   be wasteful.
+// - Genre is a proper normalized table (not a delimited string) so year+genre
+//   queries can use a real index and joins.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Movie {
+  id            Int          @id // reuses MovieLens movieId
+  title         String       // cleaned title, e.g. "Toy Story"
+  originalTitle String       // raw title including "(1995)" suffix
+  year          Int?
+  imdbId        String?
+  tmdbId        String?
+  genres        MovieGenre[]
+  stats         MovieStats?
+  tmdb          TmdbCache?
+
+  @@index([year])
+  @@index([title])
+}
+
+model Genre {
+  id     Int          @id @default(autoincrement())
+  name   String       @unique
+  movies MovieGenre[]
+}
+
+model MovieGenre {
+  movieId Int
+  genreId Int
+  movie   Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  genre   Genre @relation(fields: [genreId], references: [id], onDelete: Cascade)
+
+  @@id([movieId, genreId])
+  @@index([genreId])
+}
+
+model MovieStats {
+  movieId         Int   @id
+  numRatings      Int
+  avgRating       Float
+  weightedRating  Float // IMDB-style Bayesian score, precomputed by ETL
+
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@index([avgRating])
+  @@index([weightedRating])
+  @@index([numRatings])
+}
+
+// On-demand cache of TMDB enrichment. We fetch when the details endpoint is
+// hit, then reuse forever — TMDB's own data changes rarely, and staying
+// polite to their API matters more than absolute freshness.
+//
+// `castJson` and `trailerKey` are TEXT fields storing the shortlisted payload
+// (top ~10 cast members as JSON, single trailer YouTube key). Full raw
+// responses aren't kept; we'd rather store the shape the UI needs.
+model TmdbCache {
+  movieId          Int      @id
+  posterPath       String?
+  backdropPath     String?
+  overview         String?
+  runtimeMinutes   Int?
+  originalLanguage String?
+  tmdbPopularity   Float?
+  director         String?
+  castJson         String?  // JSON: [{ name, character, profilePath }]
+  trailerKey       String?  // YouTube video key
+  fetchedAt        DateTime @default(now())
+
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+}
