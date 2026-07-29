@@ -636,17 +636,7 @@ LG-Challenge-FullStack/
 
 ---
 
-## Publicação
 
-Esta solução foi feita para rodar localmente, via Node ou Docker Compose. Ela **não está
-publicada** em nenhum serviço hospedado. Se quiser publicar, os caminhos mais simples são:
-
-- **API** — Fly.io, Render ou Railway (todos aceitam Dockerfile direto). Persista o volume do
-  SQLite.
-- **Front** — Vercel ou Netlify. Defina a variável `VITE_API_URL` apontando para a origem da
-  API publicada e adicione a regra de rewrite de `/api` na configuração da plataforma.
-
----
 
 ## Para quem for avaliar
 
